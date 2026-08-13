@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Todo List | Full Stack App</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<link rel="icon" href="data:," />
+</head>
+<body class="bg-slate-950 min-h-screen text-slate-100">
+
+<div id="root"></div>
+
+<script type="text/babel" data-type="module">
+const { useState, useEffect } = React;
+
+const API_BASE_URL = "http://localhost:5000/api/todos";
+
+function App() {
+  const [todos, setTodos] = useState([]);
+  const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    fetchTodos();
+  }, []);
+
+  async function fetchTodos() {
+    try {
+      setLoading(true);
+      const res = await fetch(API_BASE_URL);
+      if (!res.ok) throw new Error("Failed to fetch todos");
+      const data = await res.json();
+      setTodos(data);
+      setError("");
+    } catch (err) {
+      setError("Backend se connect nahi ho paya. API_BASE_URL check karo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function addTodo(e) {
+    e.preventDefault();
+    if (!title.trim()) return;
+    try {
+      const res = await fetch(API_BASE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const newTodo = await res.json();
+      setTodos([newTodo, ...todos]);
+      setTitle("");
+    } catch (err) {
+      setError("Todo add nahi ho paya.");
+    }
+  }
+
+  async function toggleTodo(todo) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/${todo._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: !todo.completed }),
+      });
+      const updated = await res.json();
+      setTodos(todos.map((t) => (t._id === updated._id ? updated : t)));
+    } catch (err) {
+      setError("Todo update nahi ho paya.");
+    }
+  }
+
+  async function deleteTodo(id) {
+    try {
+      await fetch(`${API_BASE_URL}/${id}`, { method: "DELETE" });
+      setTodos(todos.filter((t) => t._id !== id));
+    } catch (err) {
+      setError("Todo delete nahi ho paya.");
+    }
+  }
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-10">
+      <h1 className="text-3xl font-bold mb-1 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+        Todo List
+      </h1>
+      <p className="text-slate-400 text-sm mb-6">React + Node.js + Express + MongoDB</p>
+
+      <form onSubmit={addTodo} className="flex gap-2 mb-6">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Add a new task..."
+          className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-emerald-400"
+        />
+        <button
+          type="submit"
+          className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold px-4 py-2 rounded-lg text-sm transition"
+        >
+          Add
+        </button>
+      </form>
+
+      {error && (
+        <div className="bg-red-950 border border-red-800 text-red-300 text-sm rounded-lg px-4 py-3 mb-4">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <p className="text-slate-500 text-sm">Loading...</p>
+      ) : todos.length === 0 ? (
+        <p className="text-slate-500 text-sm">No tasks yet. Add one above 👆</p>
+      ) : (
+        <ul className="space-y-2">
+          {todos.map((todo) => (
+            <li
+              key={todo._id}
+              className="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg px-4 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleTodo(todo)}
+                  className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                />
+                <span
+                  className={
+                    todo.completed
+                      ? "line-through text-slate-500 text-sm"
+                      : "text-slate-100 text-sm"
+                  }
+                >
+                  {todo.title}
+                </span>
+              </div>
+              <button
+                onClick={() => deleteTodo(todo._id)}
+                className="text-red-400 hover:text-red-300 text-xs font-medium"
+              >
+                Delete
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <p className="text-slate-600 text-xs mt-10 text-center">
+        Built with React, Node.js, Express & MongoDB
+      </p>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+  </html>
