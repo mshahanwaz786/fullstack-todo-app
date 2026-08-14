@@ -1,7 +1,9 @@
 # Full Stack Todo List App
 
 A complete full stack Todo List application built with React, Node.js, Express, and MongoDB. Users can create, read, update, and delete tasks — all data is persisted in a real database via a REST API.
+**Live Demo:** [https://mshahanwaz786.github.io/fullstack-todo-app/client/index.html](https://mshahanwaz786.github.io/fullstack-todo-app/client/index.html)
 
+**Backend API:** [https://fullstack-todo-app-xqdm.onrender.com](https://fullstack-todo-app-xqdm.onrender.com)
 ## Tech Stack
 
 **Frontend:** React, Tailwind CSS
